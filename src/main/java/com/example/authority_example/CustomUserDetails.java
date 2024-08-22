@@ -1,0 +1,61 @@
+package com.example.authority_example;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Getter
+@NoArgsConstructor
+public class CustomUserDetails implements UserDetails {
+    private String username;
+    private String password;
+    private DepartmentEntity department;
+    private List<RoleEntity> roles;
+    private Set<GrantedAuthority> authorities = new HashSet<>();
+
+    public CustomUserDetails(String username, String password, DepartmentEntity department, List<RoleEntity> roles) {
+        this.username = username;
+        this.password = password;
+        this.department = department;
+        this.roles = roles;
+        this.authorities = generateAuthorities();
+
+    }
+
+     private Set<GrantedAuthority> generateAuthorities() {
+         Set<GrantedAuthority> authorities = roles.stream()
+                 .map(role -> new SimpleGrantedAuthority(role.getCode().getValue()))
+                 .collect(Collectors.toSet());
+        roles.forEach(role ->
+            role.getAuthorities().forEach(auth ->
+                authorities.add(new SimpleGrantedAuthority(auth.getCode().name()))
+            )
+        );
+
+        return authorities;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return this.authorities;
+    }
+
+    @Override
+    public String getPassword() {
+        return this.password;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.username;
+    }
+}
