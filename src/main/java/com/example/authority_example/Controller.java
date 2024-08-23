@@ -2,6 +2,7 @@ package com.example.authority_example;
 
 import com.example.authority_example.Requests.CreateUserRequest;
 import com.example.authority_example.Requests.DeleteUserRequest;
+import com.example.authority_example.Requests.LoginRequest;
 import com.example.authority_example.Requests.UpdateUserRequest;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +17,22 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class Controller {
+    private final AuthService authService;
     private final EntityRepository entityRepository;
     private final PasswordEncoder passwordEncoder;
+
+    /**
+     * 로그인 시 사용자 정보가 담긴 token을 반환합니다
+     *
+     * @param loginRequest
+     * @return
+     */
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        String token = authService.login(loginRequest.getUsername(), loginRequest.getPassword());
+        return ResponseEntity.ok(token);
+    }
 
     /**
      * 현재 인증된 사용자의 정보를 반환합니다.
