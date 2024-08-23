@@ -20,7 +20,7 @@ public class CustomUserDetails implements UserDetails {
     private String password;
     private DepartmentEntity department;
     private List<RoleEntity> roles;
-    private Set<GrantedAuthority> authorities = new HashSet<>();
+    private Set<SimpleGrantedAuthority> authorities = new HashSet<>();
 
     public CustomUserDetails(String username, String password, DepartmentEntity department, List<RoleEntity> roles) {
         this.username = username;
@@ -31,8 +31,8 @@ public class CustomUserDetails implements UserDetails {
 
     }
 
-     private Set<GrantedAuthority> generateAuthorities() {
-         Set<GrantedAuthority> authorities = roles.stream()
+     private Set<SimpleGrantedAuthority> generateAuthorities() {
+         Set<SimpleGrantedAuthority> authorities = roles.stream()
                  .map(role -> new SimpleGrantedAuthority(role.getCode().getValue()))
                  .collect(Collectors.toSet());
         roles.forEach(role ->
@@ -57,5 +57,9 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public String getUsername() {
         return this.username;
+    }
+
+    public void setAuthorities(HashSet<SimpleGrantedAuthority> simpleGrantedAuthorities) {
+        this.authorities = simpleGrantedAuthorities;
     }
 }
