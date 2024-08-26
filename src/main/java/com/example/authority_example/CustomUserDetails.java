@@ -31,7 +31,7 @@ public class CustomUserDetails implements UserDetails {
 
     }
 
-     private Set<SimpleGrantedAuthority> generateAuthorities() {
+    private Set<SimpleGrantedAuthority> generateAuthorities() {
          Set<SimpleGrantedAuthority> authorities = roles.stream()
                  .map(role -> new SimpleGrantedAuthority(role.getCode().getValue()))
                  .collect(Collectors.toSet());
