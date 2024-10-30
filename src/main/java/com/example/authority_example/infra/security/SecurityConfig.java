@@ -1,7 +1,8 @@
-package com.example.authority_example;
+package com.example.authority_example.infra.security;
 
 
-import com.example.authority_example.jwt.JwtAuthenticationFilter;
+import com.example.authority_example.domain.RoleCode;
+import com.example.authority_example.infra.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

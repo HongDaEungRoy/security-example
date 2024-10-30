@@ -1,5 +1,7 @@
-package com.example.authority_example;
+package com.example.authority_example.infra.security;
 
+import com.example.authority_example.domain.UserEntity;
+import com.example.authority_example.domain.EntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

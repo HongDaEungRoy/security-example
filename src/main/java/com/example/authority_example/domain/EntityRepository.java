@@ -1,4 +1,4 @@
-package com.example.authority_example;
+package com.example.authority_example.domain;
 
 import lombok.Getter;
 import org.springframework.stereotype.Repository;

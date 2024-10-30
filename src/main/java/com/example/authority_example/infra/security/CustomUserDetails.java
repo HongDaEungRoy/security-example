@@ -1,6 +1,7 @@
-package com.example.authority_example;
+package com.example.authority_example.infra.security;
 
-import lombok.AllArgsConstructor;
+import com.example.authority_example.domain.DepartmentEntity;
+import com.example.authority_example.domain.RoleEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,14 +29,13 @@ public class CustomUserDetails implements UserDetails {
         this.department = department;
         this.roles = roles;
         this.authorities = generateAuthorities();
-
     }
 
     private Set<SimpleGrantedAuthority> generateAuthorities() {
-         Set<SimpleGrantedAuthority> authorities = roles.stream()
+         Set<SimpleGrantedAuthority> authorities = this.roles.stream()
                  .map(role -> new SimpleGrantedAuthority(role.getCode().getValue()))
                  .collect(Collectors.toSet());
-        roles.forEach(role ->
+        this.roles.forEach(role ->
             role.getAuthorities().forEach(auth ->
                 authorities.add(new SimpleGrantedAuthority(auth.getCode().name()))
             )

@@ -1,11 +1,10 @@
-package com.example.authority_example;
+package com.example.authority_example.domain;
 
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -28,8 +27,17 @@ public class UserEntity {
         this.name = name;
     }
 
-    public void encodePassword(PasswordEncoder encoder) {
-        this.password = encoder.encode(this.password);
+    public List<String> getAuthorities() {
+        List<String> authorities = new ArrayList<>(this.roles.stream()
+                .map(role -> role.getCode().getValue())
+                .toList());
+        this.roles.forEach(role ->
+            role.getAuthorities().forEach(auth ->
+                authorities.add(auth.getCode().name())
+            )
+        );
+
+        return authorities;
     }
 
 }

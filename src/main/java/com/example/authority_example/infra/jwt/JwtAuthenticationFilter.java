@@ -1,8 +1,9 @@
-package com.example.authority_example.jwt;
+package com.example.authority_example.infra.jwt;
 
 
-import com.example.authority_example.CustomUserDetails;
-import com.example.authority_example.DepartmentEntity;
+import com.example.authority_example.global.JwtUtil;
+import com.example.authority_example.infra.security.CustomUserDetails;
+import com.example.authority_example.domain.DepartmentEntity;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -48,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             CustomUserDetails userDetails = new CustomUserDetails(username, "", new DepartmentEntity(department), null);
             userDetails.setAuthorities(new HashSet<>(authorities));
 
-            if (jwtUtil.validateToken(jwt, userDetails)) {
+            if (jwtUtil.validateToken(jwt, username)) {
              UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                      userDetails, null, userDetails.getAuthorities()
              );

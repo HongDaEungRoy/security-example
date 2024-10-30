@@ -1,7 +1,7 @@
-package com.example.authority_example.jwt;
+package com.example.authority_example.global;
 
 
-import com.example.authority_example.CustomUserDetails;
+import com.example.authority_example.infra.security.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -9,7 +9,6 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -33,13 +32,11 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(CustomUserDetails user) {
+    public String generateToken(List<String> authorities, String departmentName, String username) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("authorities", user.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .toList());
-        claims.put("department", user.getDepartment().getName());
-        return createToken(claims, user.getUsername());
+        claims.put("authorities", authorities);
+        claims.put("department", departmentName);
+        return createToken(claims, username);
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
@@ -52,9 +49,9 @@ public class JwtUtil {
                 .compact();
     }
 
-    public Boolean validateToken(String token, UserDetails user) {
+    public Boolean validateToken(String token, String requestUsername) {
         String username = extractUsername(token);
-        return (username.equals(user.getUsername()) && !isTokenExpired(token));
+        return (username.equals(requestUsername) && !isTokenExpired(token));
     }
 
     private Boolean isTokenExpired(String token) {
@@ -83,5 +80,4 @@ public class JwtUtil {
     private Claims extractAllClaim(String token) {
         return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody();
     }
-
 }

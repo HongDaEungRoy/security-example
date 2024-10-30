@@ -1,9 +1,12 @@
-package com.example.authority_example;
+package com.example.authority_example.controller;
 
-import com.example.authority_example.Requests.CreateUserRequest;
-import com.example.authority_example.Requests.DeleteUserRequest;
-import com.example.authority_example.Requests.LoginRequest;
-import com.example.authority_example.Requests.UpdateUserRequest;
+import com.example.authority_example.service.AuthService;
+import com.example.authority_example.controller.Requests.CreateUserRequest;
+import com.example.authority_example.controller.Requests.DeleteUserRequest;
+import com.example.authority_example.controller.Requests.LoginRequest;
+import com.example.authority_example.controller.Requests.UpdateUserRequest;
+import com.example.authority_example.domain.*;
+import com.example.authority_example.infra.security.CustomUserDetails;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -142,11 +145,13 @@ public class Controller {
         if (entityRepository.findByName(createUserRequest.getUsername()) != null) {
             return ResponseEntity.badRequest().body("Username already exists");
         }
+
+        String encodedPassword = passwordEncoder.encode(createUserRequest.getPassword());
         DepartmentEntity department = new DepartmentEntity(createUserRequest.getDepartment());
         RoleEntity role = new RoleEntity(RoleCode.valueOf(createUserRequest.getRole()), List.of(new AuthorityEntity(AuthorityCode.READ, "Read permission")));
-        UserEntity newUser = new UserEntity(createUserRequest.getUsername(), createUserRequest.getPassword(), department, List.of(role));
-        newUser.encodePassword(passwordEncoder);
+        UserEntity newUser = new UserEntity(createUserRequest.getUsername(), encodedPassword, department, List.of(role));
         entityRepository.save(newUser);
+
         return ResponseEntity.ok("User created successfully");
     }
 
@@ -197,8 +202,8 @@ public class Controller {
     }
 
     private void createAndSaveUser(String name, String password, DepartmentEntity department, List<RoleEntity> roles) {
-        UserEntity user = new UserEntity(name, password, department, roles);
-        user.encodePassword(passwordEncoder);
+        String encodedPassword = passwordEncoder.encode(password);
+        UserEntity user = new UserEntity(name, encodedPassword, department, roles);
         entityRepository.save(user);
     }
 }
