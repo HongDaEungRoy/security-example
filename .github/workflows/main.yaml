@@ -1,0 +1,105 @@
+name: Spring Boot Service Deployment
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'temurin'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: ${{ env.JAVA_DISTRIBUTION }}
+        
+    - name: Build with Gradle
+      run: ./gradlew clean build -x test
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: Package
+        path: build/libs/*.jar
+
+  deploy-server-1:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: Package
+        
+    - name: Deploy to Server 1
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_1_HOST }}
+        username: ${{ secrets.SERVER_1_USERNAME }}
+        key: ${{ secrets.SERVER_1_SSH_KEY }}
+        script: |
+          cd /path/to/application
+          # 백업
+          cp app.jar app.jar.backup || true
+          
+          # 새 버전 배포
+          cp ${{ github.workspace }}/*.jar ./app.jar
+          chmod +x app.jar
+          
+          # 서비스 재시작
+          sudo systemctl restart yourapp.service
+          
+          # 서비스 상태 확인 (선택사항)
+          sleep 20
+          if ! curl -f http://localhost:8080/actuator/health; then
+            echo "Service 1 failed to start. Rolling back..."
+            mv app.jar.backup app.jar
+            sudo systemctl restart yourapp.service
+            exit 1
+          fi
+
+  deploy-server-2:
+    needs: deploy-server-1  # 서버1 배포 완료 후 시작
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: Package
+        
+    - name: Deploy to Server 2
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_2_HOST }}
+        username: ${{ secrets.SERVER_2_USERNAME }}
+        key: ${{ secrets.SERVER_2_SSH_KEY }}
+        script: |
+          cd /path/to/application
+          cp app.jar app.jar.backup || true
+          
+          cp ${{ github.workspace }}/*.jar ./app.jar
+          chmod +x app.jar
+          
+          sudo systemctl restart yourapp.service
+          
+          sleep 20
+          if ! curl -f http://localhost:8080/actuator/health; then
+            echo "Service 2 failed to start. Rolling back..."
+            mv app.jar.backup app.jar
+            sudo systemctl restart yourapp.service
+            exit 1
+          fi
