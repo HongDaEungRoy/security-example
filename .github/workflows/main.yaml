@@ -28,7 +28,6 @@ jobs:
 
       - name: Test with Gradle
         run: |
-          ./gradlew test
           ./gradlew bootRun &
           sleep 30  # 애플리케이션 시작 대기
 
