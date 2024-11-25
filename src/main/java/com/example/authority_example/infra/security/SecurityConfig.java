@@ -30,6 +30,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((request) -> request
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/test", "/login", "/dummy-create").permitAll()
                         .requestMatchers("/admin/**").hasRole(RoleCode.ADMIN.name())
                         .requestMatchers("/super-admin/**").hasRole(RoleCode.SUPER_ADMIN.name())
