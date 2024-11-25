@@ -50,25 +50,16 @@ jobs:
         username: ${{ secrets.SERVER_1_USERNAME }}
         key: ${{ secrets.SERVER_1_SSH_KEY }}
         script: |
-          cd /path/to/application
+          cd /home/pigplan
           # 백업
-          cp app.jar app.jar.backup || true
+          cp gitActionTest.jar gitActionTest.jar.backup || true
           
           # 새 버전 배포
-          cp ${{ github.workspace }}/*.jar ./app.jar
-          chmod +x app.jar
+          cp ${{ github.workspace }}/*.jar ./gitActionTest.jar
+          chmod +x gitActionTest.jar
           
           # 서비스 재시작
-          sudo systemctl restart yourapp.service
-          
-          # 서비스 상태 확인 (선택사항)
-          sleep 20
-          if ! curl -f http://localhost:8080/actuator/health; then
-            echo "Service 1 failed to start. Rolling back..."
-            mv app.jar.backup app.jar
-            sudo systemctl restart yourapp.service
-            exit 1
-          fi
+          sudo systemctl restart gitActionTest.service
 
   deploy-server-2:
     needs: deploy-server-1  # 서버1 배포 완료 후 시작
@@ -88,18 +79,14 @@ jobs:
         username: ${{ secrets.SERVER_2_USERNAME }}
         key: ${{ secrets.SERVER_2_SSH_KEY }}
         script: |
-          cd /path/to/application
-          cp app.jar app.jar.backup || true
+          cd /home/pigplan
+          # 백업
+          cp gitActionTest.jar gitActionTest.jar.backup || true
           
-          cp ${{ github.workspace }}/*.jar ./app.jar
-          chmod +x app.jar
+          # 새 버전 배포
+          cp ${{ github.workspace }}/*.jar ./gitActionTest.jar
+          chmod +x gitActionTest.jar
           
-          sudo systemctl restart yourapp.service
+          # 서비스 재시작
+          sudo systemctl restart gitActionTest.service
           
-          sleep 20
-          if ! curl -f http://localhost:8080/actuator/health; then
-            echo "Service 2 failed to start. Rolling back..."
-            mv app.jar.backup app.jar
-            sudo systemctl restart yourapp.service
-            exit 1
-          fi
