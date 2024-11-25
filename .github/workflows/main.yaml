@@ -2,9 +2,9 @@ name: Spring Boot Service Deployment
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 env:
   JAVA_VERSION: '17'
