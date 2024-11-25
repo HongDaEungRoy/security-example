@@ -17,14 +17,14 @@ public class CustomUserDetails implements UserDetails {
     private String username;
     private String password;
     private DepartmentEntity department;
-    private List<RoleEntity> roles = Collections.emptyList();
+    private List<RoleEntity> roles;
     private Set<SimpleGrantedAuthority> authorities = new HashSet<>();
 
     public CustomUserDetails(String username, String password, DepartmentEntity department, List<RoleEntity> roles) {
         this.username = username;
         this.password = password;
         this.department = department;
-        this.roles = roles;
+        this.roles = roles != null ? roles : Collections.emptyList();
         this.authorities = generateAuthorities();
     }
 
