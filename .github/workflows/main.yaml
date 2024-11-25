@@ -39,17 +39,26 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment: production
-    
+
     steps:
     - name: Download build artifacts
       uses: actions/download-artifact@v3
       with:
         name: Package
-        
+
     - name: List downloaded files
       run: ls -la
 
-    - name: Deploy to Server 1
+    - name: Deploy JAR to Server 1
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.SERVER_1_HOST }}
+        username: ${{ secrets.SERVER_1_USERNAME }}
+        key: ${{ secrets.SERVER_1_SSH_KEY }}
+        source: "*.jar"
+        target: "/home/pigplan"
+
+    - name: Execute deployment script on Server 1
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.SERVER_1_HOST }}
@@ -65,27 +74,32 @@ jobs:
             cp gitActionTest.jar gitActionTest.jar.backup
           fi
           
-          # 새 버전 배포 전 디버깅
-          echo "Current directory contents:"
-          ls -la
+          # 새로 전송된 JAR 파일 찾기
+          NEW_JAR=$(find . -maxdepth 1 -name "*.jar" ! -name "*.backup" -type f -printf "%T@ %p\n" | sort -n | tail -1 | cut -f2- -d" ")
           
-          # 새 버전 배포 
-          find . -name "*.jar" -type f -exec cp {} gitActionTest.jar \;
-          
-          if [ -f gitActionTest.jar ]; then
+          if [ -n "$NEW_JAR" ]; then
+            echo "Found new JAR file: $NEW_JAR"
+            cp "$NEW_JAR" gitActionTest.jar
             chmod +x gitActionTest.jar
             echo "JAR file deployed successfully"
             ls -la gitActionTest.jar
+            
+            # 서비스 재시작
+            if sudo systemctl is-active --quiet gitActionTest.service; then
+              sudo systemctl restart gitActionTest.service
+            else
+              sudo systemctl start gitActionTest.service
+            fi
+            
+            # 서비스 상태 및 로그 확인
+            echo "Service status:"
+            sudo systemctl status gitActionTest.service
+            echo "Recent logs:"
+            sudo journalctl -u gitActionTest.service -n 50 --no-pager
           else
-            echo "Failed to deploy JAR file"
+            echo "No new JAR file found"
             exit 1
           fi
-          
-          # 서비스 상태 확인 및 재시작
-          sudo systemctl status gitActionTest.service || true
-          sudo systemctl restart gitActionTest.service
-          sleep 5
-          sudo systemctl status gitActionTest.service
 
   deploy-server-2:
     needs: deploy-server-1
@@ -101,7 +115,16 @@ jobs:
     - name: List downloaded files
       run: ls -la
 
-    - name: Deploy to Server 2
+    - name: Deploy JAR to Server 2
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.SERVER_2_HOST }}
+        username: ${{ secrets.SERVER_2_USERNAME }}
+        key: ${{ secrets.SERVER_2_SSH_KEY }}
+        source: "*.jar"
+        target: "/home/pigplan"
+
+    - name: Execute deployment script on Server 2
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.SERVER_2_HOST }}
@@ -117,24 +140,29 @@ jobs:
             cp gitActionTest.jar gitActionTest.jar.backup
           fi
           
-          # 새 버전 배포 전 디버깅
-          echo "Current directory contents:"
-          ls -la
+          # 새로 전송된 JAR 파일 찾기
+          NEW_JAR=$(find . -maxdepth 1 -name "*.jar" ! -name "*.backup" -type f -printf "%T@ %p\n" | sort -n | tail -1 | cut -f2- -d" ")
           
-          # 새 버전 배포 
-          find . -name "*.jar" -type f -exec cp {} gitActionTest.jar \;
-          
-          if [ -f gitActionTest.jar ]; then
+          if [ -n "$NEW_JAR" ]; then
+            echo "Found new JAR file: $NEW_JAR"
+            cp "$NEW_JAR" gitActionTest.jar
             chmod +x gitActionTest.jar
             echo "JAR file deployed successfully"
             ls -la gitActionTest.jar
+            
+            # 서비스 재시작
+            if sudo systemctl is-active --quiet gitActionTest.service; then
+              sudo systemctl restart gitActionTest.service
+            else
+              sudo systemctl start gitActionTest.service
+            fi
+            
+            # 서비스 상태 및 로그 확인
+            echo "Service status:"
+            sudo systemctl status gitActionTest.service
+            echo "Recent logs:"
+            sudo journalctl -u gitActionTest.service -n 50 --no-pager
           else
-            echo "Failed to deploy JAR file"
+            echo "No new JAR file found"
             exit 1
           fi
-          
-          # 서비스 상태 확인 및 재시작
-          sudo systemctl status gitActionTest.service || true
-          sudo systemctl restart gitActionTest.service
-          sleep 5
-          sudo systemctl status gitActionTest.service
