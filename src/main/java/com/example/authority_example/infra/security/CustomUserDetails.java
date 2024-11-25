@@ -8,10 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -20,7 +17,7 @@ public class CustomUserDetails implements UserDetails {
     private String username;
     private String password;
     private DepartmentEntity department;
-    private List<RoleEntity> roles;
+    private List<RoleEntity> roles = Collections.emptyList();
     private Set<SimpleGrantedAuthority> authorities = new HashSet<>();
 
     public CustomUserDetails(String username, String password, DepartmentEntity department, List<RoleEntity> roles) {
