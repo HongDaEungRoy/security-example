@@ -46,6 +46,9 @@ jobs:
       with:
         name: Package
         
+    - name: List downloaded files
+      run: ls -la
+
     - name: Deploy to Server 1
       uses: appleboy/ssh-action@master
       with:
@@ -54,27 +57,50 @@ jobs:
         key: ${{ secrets.SERVER_1_SSH_KEY }}
         script: |
           cd /home/pigplan
-          # 백업
-          cp gitActionTest.jar gitActionTest.jar.backup || true
+          pwd
+          ls -la  # 현재 디렉토리 파일 확인
           
-          # 새 버전 배포
-          cp ${{ github.workspace }}/*.jar ./gitActionTest.jar
-          chmod +x gitActionTest.jar
+          # 기존 jar 백업
+          if [ -f gitActionTest.jar ]; then
+            cp gitActionTest.jar gitActionTest.jar.backup
+          fi
           
-          # 서비스 재시작
+          # 새 버전 배포 전 디버깅
+          echo "Current directory contents:"
+          ls -la
+          
+          # 새 버전 배포 
+          find . -name "*.jar" -type f -exec cp {} gitActionTest.jar \;
+          
+          if [ -f gitActionTest.jar ]; then
+            chmod +x gitActionTest.jar
+            echo "JAR file deployed successfully"
+            ls -la gitActionTest.jar
+          else
+            echo "Failed to deploy JAR file"
+            exit 1
+          fi
+          
+          # 서비스 상태 확인 및 재시작
+          sudo systemctl status gitActionTest.service || true
           sudo systemctl restart gitActionTest.service
+          sleep 5
+          sudo systemctl status gitActionTest.service
 
   deploy-server-2:
-    needs: deploy-server-1  # 서버1 배포 완료 후 시작
+    needs: deploy-server-1
     runs-on: ubuntu-latest
     environment: production
-    
+
     steps:
     - name: Download build artifacts
       uses: actions/download-artifact@v3
       with:
         name: Package
-        
+
+    - name: List downloaded files
+      run: ls -la
+
     - name: Deploy to Server 2
       uses: appleboy/ssh-action@master
       with:
@@ -83,13 +109,32 @@ jobs:
         key: ${{ secrets.SERVER_2_SSH_KEY }}
         script: |
           cd /home/pigplan
-          # 백업
-          cp gitActionTest.jar gitActionTest.jar.backup || true
+          pwd
+          ls -la  # 현재 디렉토리 파일 확인
           
-          # 새 버전 배포
-          cp ${{ github.workspace }}/*.jar ./gitActionTest.jar
-          chmod +x gitActionTest.jar
+          # 기존 jar 백업
+          if [ -f gitActionTest.jar ]; then
+            cp gitActionTest.jar gitActionTest.jar.backup
+          fi
           
-          # 서비스 재시작
+          # 새 버전 배포 전 디버깅
+          echo "Current directory contents:"
+          ls -la
+          
+          # 새 버전 배포 
+          find . -name "*.jar" -type f -exec cp {} gitActionTest.jar \;
+          
+          if [ -f gitActionTest.jar ]; then
+            chmod +x gitActionTest.jar
+            echo "JAR file deployed successfully"
+            ls -la gitActionTest.jar
+          else
+            echo "Failed to deploy JAR file"
+            exit 1
+          fi
+          
+          # 서비스 상태 확인 및 재시작
+          sudo systemctl status gitActionTest.service || true
           sudo systemctl restart gitActionTest.service
-          
+          sleep 5
+          sudo systemctl status gitActionTest.service
