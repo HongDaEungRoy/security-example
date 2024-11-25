@@ -11,7 +11,34 @@ env:
   JAVA_DISTRIBUTION: 'temurin'
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Test with Gradle
+        run: |
+          ./gradlew test
+          ./gradlew bootRun &
+          sleep 30  # 애플리케이션 시작 대기
+
+          # Health check
+          curl -f http://localhost:8080/actuator/health || exit 1
+
+          # 프로세스 종료
+          kill $(lsof -t -i:8080)
   build:
+    needs: test
     runs-on: ubuntu-latest
     
     steps:
